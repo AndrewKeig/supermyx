@@ -1,7 +1,17 @@
 # supermyx
 
-supermyx is an oppionated rabbitmq wrapper around node-amqp.
+supermyx is a highly oppionated rabbitmq wrapper around node-amqp.
 
+supermyx can be configure to implement various messaging patterns, ive tested this with:
+
+- work queues
+- publish subscribe
+
+By default supermyx uses the rabbitmq extension `publisher confirms`, and can be configured to use acks.
+
+supermyx will emit logs at various intervals; so you can setup a handler listening to `amqp-log`.
+
+The following is included in the examples folder.
 
 
 ## producer
