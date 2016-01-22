@@ -4,7 +4,9 @@ supermyx is a highly oppionated RabbitMQ wrapper around `node-amqp` and can be c
 
 By default supermyx uses the RabbitMQ extension `publisher confirms`, which ensures a message is delivered to RabbitMQ.  supermyx is also configured to use `acks`, which ensure a message when pulled from a queue is acknowledged before removing it from the queue.
 
-supermyx will emit log messages at various intervals; so you can setup a handler listening to `worker:log`.
+Heartbeats are configured at `60`, you can also configure a reconnect strategy, just like `node-amqp`.
+
+supermyx will emit log messages at various intervals; so you can setup a handler listening to `process.on(worker:log, fn)`.
 
 ## Install
 
@@ -68,6 +70,8 @@ process.on('worker:log', (msg) => {
 
 ## config
 
+Configure the exchange like so to implement pubsub.
+
 ```
 const psexchange = {
   name: "pubsub.exchange",
@@ -78,7 +82,11 @@ const psexchange = {
     confirm: true
   }
 };
+```
 
+Configure the exchange like so to implement a work queue.
+
+```
 const wqexchange = {
   name: "workqueue.exchange",
   options: {
@@ -89,6 +97,8 @@ const wqexchange = {
   }
 };
 
+
+```
 const queue = {
   options: {
     durable: true,
@@ -121,9 +131,5 @@ const amqp = {
     }
   }
 }
-
-module.exports = amqp;
-
-
 
 ```
