@@ -6,7 +6,6 @@ By default supermyx uses the RabbitMQ extension `publisher confirms`, which ensu
 
 Heartbeats are configured at `60`, you can also configure a reconnect strategy, just like `node-amqp`.
 
-supermyx will emit log messages at various intervals; so you can setup a handler listening to `process.on(worker:log, fn)`.
 
 ## Install
 
@@ -14,15 +13,25 @@ supermyx will emit log messages at various intervals; so you can setup a handler
 $ npm install supermyx --save
 ```
 
-The following is also included in the examples folder.
 
+## Logs
+
+supermyx will emit log messages at various intervals; so you can setup a handler listening to:
+
+```
+process.on(worker:log, (msg) => {
+  console.log(msg);
+})
+```
 
 ## Work Queue
+
+The following is also included in the examples folder.
 
 The following example configuration is for a work queue.  A work queue contains a single queue.  Each consumer pulls a single message off the queue in a round robin fashion; so load is distributed evenly amongst consumers.
 
 
-### producer
+### Producer
 
 Currently each producer creates its own amqp connection. This is not ideal, and we will change this to a connection pool asap.  The connection is closed when the message is published.
 
@@ -47,7 +56,7 @@ process.on('worker:log', (msg) => {
 ```
 
 
-### consumer
+### Consumer
 
 Each consumer creates its own amqp connection.  On error this consumer will `process.exit`.
 
@@ -68,7 +77,7 @@ process.on('worker:log', (msg) => {
 
 ```
 
-## config
+## Config
 
 Configure the exchange like so to implement pubsub.
 
