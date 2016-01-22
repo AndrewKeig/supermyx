@@ -1,22 +1,18 @@
 # supermyx
 
-supermyx is a highly oppionated RabbitMQ wrapper around node-amqp and can be configured to implement various messaging patterns:
-
-- work queues
-- publish subscribe
+supermyx is a highly oppionated RabbitMQ wrapper around `node-amqp` and can be configured to implement various messaging patterns, including `work queues` and `publish subscribe`.
 
 By default supermyx uses the RabbitMQ extension `publisher confirms`, which ensures a message is delivered to RabbitMQ.  supermyx is also configured to use `acks`, which ensure a message when pulled from a queue is acknowledged before removing it from the queue.
 
 supermyx will emit log messages at various intervals; so you can setup a handler listening to `worker:log`.
-
-The following is also included in the examples folder.
-
 
 ## Install
 
 ```
 $ npm install supermyx --save
 ```
+
+The following is also included in the examples folder.
 
 
 ## Work Queue
