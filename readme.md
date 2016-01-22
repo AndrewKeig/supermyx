@@ -14,7 +14,13 @@ supermyx will emit logs at various intervals; so you can setup a handler listeni
 The following is included in the examples folder.
 
 
+
 ## producer
+
+Currently each producer creates its own amqp connection. This is not ideal, and we will change this to a connection pool asap.
+
+On error this producer will promise `reject`; on success, promise `resolve`.
+
 ```
 const config = require('./config');
 const producer = require('../index').producer(config);
@@ -32,6 +38,9 @@ process.on('amqp-log', (msg) => {
 
 
 ## consumer
+
+Each consumer creates its own amqp connection.  On error this consumer will `process.exit`.
+
 ```
 
 const config = require('./config');
