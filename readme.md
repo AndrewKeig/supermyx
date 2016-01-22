@@ -106,15 +106,12 @@ const wqexchange = {
   }
 };
 
+```
+
+
+The following configuration completes our example.
 
 ```
-const queue = {
-  options: {
-    durable: true,
-    exclusive: false,
-    autoDelete: false 
-  }
-}
 
 const amqp = {
   options: {
@@ -129,11 +126,23 @@ const amqp = {
   },
   producer: {
     exchange: wqexchange,
-    queue: queue
+    queue: {
+      options: {
+        durable: true,
+        exclusive: false,
+        autoDelete: false 
+      }
+    }
   },
   consumer: {
     exchange: wqexchange,
-    queue: queue,
+    queue: {
+      options: {
+        durable: true,
+        exclusive: false,
+        autoDelete: false 
+      },
+    }
     subscribe: {
       ack: true,
       prefetchCount: 1
