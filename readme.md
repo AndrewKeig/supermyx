@@ -17,7 +17,7 @@ The following is included in the examples folder.
 
 ## Work Queue
 
-The following example configuration is for a work queue.  A work queue contains a single queue.  
+The following example configuration is for a work queue.  A work queue contains a single queue.  Each consumer of the queue pulls of a single message in a round robin fashion; so load is distributed evenly amongst consumers.
 
 
 ### producer
