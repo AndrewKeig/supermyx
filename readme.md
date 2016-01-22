@@ -7,7 +7,7 @@ supermyx can be configure to implement various messaging patterns, ive tested th
 - work queues
 - publish subscribe
 
-By default supermyx uses the rabbitmq extension `publisher confirms`, and can be configured to use acks.
+By default supermyx uses the rabbitmq extension `publisher confirms`, and is configured to use acks.
 
 supermyx will emit logs at various intervals; so you can setup a handler listening to `amqp-log`.
 
@@ -15,7 +15,12 @@ The following is included in the examples folder.
 
 
 
-## producer
+## Work Queue
+
+The following example configuration is for a work queue.  A work queue contains a single queue.  
+
+
+### producer
 
 Currently each producer creates its own amqp connection. This is not ideal, and we will change this to a connection pool asap.
 
@@ -37,7 +42,7 @@ process.on('amqp-log', (msg) => {
 ```
 
 
-## consumer
+### consumer
 
 Each consumer creates its own amqp connection.  On error this consumer will `process.exit`.
 
