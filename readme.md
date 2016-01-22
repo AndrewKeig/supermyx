@@ -1,15 +1,22 @@
 # supermyx
 
-supermyx is a highly oppionated rabbitmq wrapper around node-amqp and can be configured to implement various messaging patterns:
+supermyx is a highly oppionated RabbitMQ wrapper around node-amqp and can be configured to implement various messaging patterns:
 
 - work queues
 - publish subscribe
 
-By default supermyx uses the rabbitmq extension `publisher confirms`, and is configured to use acks.
+By default supermyx uses the RabbitMQ extension `publisher confirms`, which ensures a message is delivered to RabbitMQ.  supermyx is also configured to use `acks`, which ensure a message when pulled from a queue is acknowledged before removing it from the queue.
 
-supermyx will emit logs at various intervals; so you can setup a handler listening to `worker:log`.
+supermyx will emit log messages at various intervals; so you can setup a handler listening to `worker:log`.
 
 The following is also included in the examples folder.
+
+
+## Install
+
+```
+$ npm install supermyx --save
+```
 
 
 ## Work Queue
@@ -25,7 +32,7 @@ On error this producer will promise `reject`; on success, promise `resolve`.
 
 ```
 const config = require('./config');
-const producer = require('../index').producer(config);
+const producer = require('supermyx').producer(config);
 
 producer.publish('build/timeline', 'get me a timeline')
   .then(() => logger.info({ msg: 'published message to exchange'}))
@@ -49,7 +56,7 @@ Each consumer creates its own amqp connection.  On error this consumer will `pro
 ```
 
 const config = require('./config');
-const consumer = require('../index').consumer(config);
+const consumer = require('supermyx').consumer(config);
 
 consumer.subscribe('build/timeline', (data, ack) => {
   console.log({ msg: 'get timeline....'});
@@ -63,11 +70,11 @@ process.on('worker:log', (msg) => {
 
 ```
 
-## configuration
+## config
 
 ```
 const psexchange = {
-  name: "yubl.pubsub.exchange",
+  name: "pubsub.exchange",
   options: {
     type: 'fanout',
     durable: true,
@@ -77,7 +84,7 @@ const psexchange = {
 };
 
 const wqexchange = {
-  name: "yubl.workqueue.exchange",
+  name: "workqueue.exchange",
   options: {
     type: 'direct',
     durable: true,
