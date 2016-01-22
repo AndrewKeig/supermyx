@@ -1,5 +1,5 @@
 const config = require('./config');
-const logger = require('../messaging/logger')('amqp-publish');
+const logger = require('../index').logger('amqp-publish');
 const producer = require('../index').producer(config);
 
 producer.publish('andrew')
