@@ -1,0 +1,32 @@
+{
+  "name": "supermyx",
+  "version": "0.0.1",
+  "author": "Andrew Keig <andrew.keig@gmail.com>",
+  "description": "supermyx is an oppionated rabbitmq wrapper around node-amqp",
+  "homepage": "https://github.com/andrewkeig/supermyx",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andrewkeig/supermyx"
+  },
+  "dependencies": {
+    "amqp": "^0.2.4"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "main": "index",
+  "keywords": [
+    "rabbitmq",
+    "rabbit",
+    "messaging"
+  ],
+  "bugs": {
+    "url": "https://github.com/andrewkeig/supermyx/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/andrewkeig/supermyx/raw/master/LICENSE"
+    }
+  ]
+}
