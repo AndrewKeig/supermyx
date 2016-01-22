@@ -5,7 +5,7 @@ const logger = require('../logger')('amqp-producer');
 
 function producer(cfg) {
 
-  const publish = (payload) => {
+  const publish = (routingKey, payload) => {
     const connection = amqp.createConnection(cfg.options, cfg.implOptions);
 
     return new Promise((resolve, reject) => {      
@@ -17,19 +17,20 @@ function producer(cfg) {
 
         exchange.on('exchangeDeclareOk', () => {
           logger.info({ msg: 'exchange created'});
+          logger.info({ msg: 'routing key:', data: routingKey});
 
-          const queue = connection.queue(cfg.producer.queue.name, cfg.producer.queue.options);
+          const queue = connection.queue(routingKey, cfg.producer.queue.options);
 
           queue.on('queueDeclareOk', () => {
             logger.info({ msg: 'queue created'});
-            queue.bind(cfg.producer.exchange.name, cfg.producer.queue.routingKey);
+            queue.bind(cfg.producer.exchange.name, routingKey);
             logger.info({ msg: 'binding queue'});
 
             queue.once('queueBindOk', () => {
               logger.info({ msg: 'queue bound'});
               logger.info({ msg: 'payload:', data: payload});
 
-              exchange.publish(cfg.producer.queue.routingKey, payload, {}, (err) => {
+              exchange.publish(routingKey, payload, {}, (err) => {
                 close(connection);
                 return (err) ? reject() : resolve();
               });
@@ -60,7 +61,6 @@ function producer(cfg) {
     logger.info({ msg: 'impl options: ', data: cfg.implOptions});
     logger.info({ msg: 'exchange: ', data: cfg.producer.exchange});
     logger.info({ msg: 'queue: ', data: cfg.producer.queue});
-    logger.info({ msg: 'routing key:', data: cfg.producer.queue.routingKey});
   }
 
   const close = (connection) => {

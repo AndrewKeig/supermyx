@@ -6,7 +6,7 @@ const logger = require('../logger')('amqp-consumer');
 function consumer(cfg) {
 
   const subscribe = (routingKey, callback) => {
-    let connection = amqp.createConnection(cfg.options, cfg.implOptions);
+    const connection = amqp.createConnection(cfg.options, cfg.implOptions);
 
     connection.on('ready', () => {
       logger.info({ msg: 'connection ready'});
@@ -16,8 +16,9 @@ function consumer(cfg) {
 
       exchange.on('exchangeDeclareOk', () => {
         logger.info({ msg: 'exchange created'});
+        logger.info({ msg: 'routing key:', data: routingKey});
 
-        const queue = connection.queue(cfg.consumer.queue.name, cfg.consumer.queue.options);
+        const queue = connection.queue(routingKey, cfg.consumer.queue.options);
 
         queue.on('queueDeclareOk', () => {
           logger.info({ msg: 'queue created'});
@@ -32,9 +33,9 @@ function consumer(cfg) {
               logger.info({ msg: 'subscribe receives headers', data: headers});
               logger.info({ msg: 'subscribe receives deliveryInfo', data: deliveryInfo});
 
-              callback(message, function() {
+              callback(message, function(reject, requeue) {
                 logger.info({ msg: 'shift and acknowledge message' }); 
-                queue.shift();
+                queue.shift(reject, requeue);
               });
             });
           });
@@ -64,7 +65,6 @@ function consumer(cfg) {
     logger.info({ msg: 'impl options: ', data: cfg.implOptions});
     logger.info({ msg: 'exchange: ', data: cfg.consumer.exchange});
     logger.info({ msg: 'queue: ', data: cfg.consumer.queue});
-    logger.info({ msg: 'routing key:', data: cfg.consumer.queue.routingKey});
     logger.info({ msg: 'queue subscriber:', data: cfg.consumer.subscribe});
   }
 

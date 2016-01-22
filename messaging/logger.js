@@ -11,7 +11,7 @@ function logger(event) {
 
   const log = (event, level, data) => {
     let logMsg = { level: level, event: event, data: data };
-    process.emit('amqp-log', logMsg);
+    process.emit('worker:log', logMsg);
   }
 
   return { info, error, log };

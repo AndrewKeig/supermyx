@@ -1,28 +1,25 @@
 # supermyx
 
-supermyx is a highly oppionated rabbitmq wrapper around node-amqp.
-
-supermyx can be configure to implement various messaging patterns, ive tested this with:
+supermyx is a highly oppionated rabbitmq wrapper around node-amqp and can be configured to implement various messaging patterns:
 
 - work queues
 - publish subscribe
 
 By default supermyx uses the rabbitmq extension `publisher confirms`, and is configured to use acks.
 
-supermyx will emit logs at various intervals; so you can setup a handler listening to `amqp-log`.
+supermyx will emit logs at various intervals; so you can setup a handler listening to `worker:log`.
 
-The following is included in the examples folder.
-
+The following is also included in the examples folder.
 
 
 ## Work Queue
 
-The following example configuration is for a work queue.  A work queue contains a single queue.  Each consumer of the queue pulls of a single message in a round robin fashion; so load is distributed evenly amongst consumers.
+The following example configuration is for a work queue.  A work queue contains a single queue.  Each consumer pulls a single message off the queue in a round robin fashion; so load is distributed evenly amongst consumers.
 
 
 ### producer
 
-Currently each producer creates its own amqp connection. This is not ideal, and we will change this to a connection pool asap.
+Currently each producer creates its own amqp connection. This is not ideal, and we will change this to a connection pool asap.  The connection is closed when the message is published.
 
 On error this producer will promise `reject`; on success, promise `resolve`.
 
@@ -30,12 +27,15 @@ On error this producer will promise `reject`; on success, promise `resolve`.
 const config = require('./config');
 const producer = require('../index').producer(config);
 
-producer.publish('andrew')
-  .then(() => console.log({ msg: 'published message to exchange'}))
+producer.publish('build/timeline', 'get me a timeline')
+  .then(() => logger.info({ msg: 'published message to exchange'}))
   .then(() => process.exit())
-  .catch(() => { console.log({ msg: 'error'}); process.exit(); });
+  .catch(() => { 
+    console.log({ msg: 'error'}); 
+    process.exit(); 
+  });
 
-process.on('amqp-log', (msg) => {
+process.on('worker:log', (msg) => {
   console.log(JSON.stringify(msg));
 });
 
@@ -51,12 +51,12 @@ Each consumer creates its own amqp connection.  On error this consumer will `pro
 const config = require('./config');
 const consumer = require('../index').consumer(config);
 
-consumer.subscribe(config.consumer.queue.routingKey, (data, ack) => {
-  console.log({ msg: 'doing work'});
-  ack();
+consumer.subscribe('build/timeline', (data, ack) => {
+  console.log({ msg: 'get timeline....'});
+  ack(false, false);
 });
 
-process.on('amqp-log', (msg) => {
+process.on('worker:log', (msg) => {
   console.log(JSON.stringify(msg));
 });
 
@@ -66,8 +66,18 @@ process.on('amqp-log', (msg) => {
 ## configuration
 
 ```
-const exchange = {
-  name: "yubl.exchange",
+const psexchange = {
+  name: "yubl.pubsub.exchange",
+  options: {
+    type: 'fanout',
+    durable: true,
+    autoDelete: false,
+    confirm: true
+  }
+};
+
+const wqexchange = {
+  name: "yubl.workqueue.exchange",
   options: {
     type: 'direct',
     durable: true,
@@ -77,8 +87,6 @@ const exchange = {
 };
 
 const queue = {
-  name: 'yubl-worker',
-  routingKey: 'yubl.key',
   options: {
     durable: true,
     exclusive: false,
@@ -89,7 +97,7 @@ const queue = {
 const amqp = {
   options: {
     heartbeat: 60,
-    url: 'amqp://hmhjqabk:TNg-3lzxdo_xhvZf8NXE1ERrOrTi9Wgp@jaguar.rmq.cloudamqp.com/hmhjqabk'
+    url: 'amqp://localhost'
   },
   implOptions: {
     reconnect: true,
@@ -98,11 +106,11 @@ const amqp = {
     reconnectBackoffTime: 1000
   },
   producer: {
-    exchange: exchange,
+    exchange: wqexchange,
     queue: queue
   },
   consumer: {
-    exchange: exchange,
+    exchange: wqexchange,
     queue: queue,
     subscribe: {
       ack: true,
@@ -110,6 +118,9 @@ const amqp = {
     }
   }
 }
+
+module.exports = amqp;
+
 
 
 ```
