@@ -19,7 +19,8 @@ function producer(cfg) {
           logger.info({ msg: 'exchange created'});
           logger.info({ msg: 'routing key:', data: routingKey});
 
-          const queue = connection.queue(routingKey, cfg.producer.queue.options);
+          const queueOptions = Object.assign({}, cfg.consumer.queue.options, { arguments: { "x-dead-letter-exchange": cfg.producer.exchange.name + '.dead' }});
+          const queue = connection.queue(routingKey, queueOptions);
 
           queue.on('queueDeclareOk', () => {
             logger.info({ msg: 'queue created'});
@@ -30,7 +31,7 @@ function producer(cfg) {
               logger.info({ msg: 'queue bound'});
               logger.info({ msg: 'payload:', data: payload});
 
-              exchange.publish(routingKey, payload, {}, (err) => {
+              exchange.publish(routingKey, payload, cfg.consumer.publish, (err) => {
                 close(connection);
                 return (err) ? reject() : resolve();
               });
@@ -47,6 +48,7 @@ function producer(cfg) {
       });
 
       connection.on('heartbeat', () => {
+        logger.info({ msg: 'heartbeat closing connection'});
         close();
       });
 

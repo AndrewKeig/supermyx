@@ -39,7 +39,11 @@ const amqp = {
   },
   producer: {
     exchange: wqexchange,
-    queue: queue
+    queue: queue,
+    publish: {
+      deliveryMode: 2,
+      expiration: "600000" //60 minutes
+    }
   },
   consumer: {
     exchange: wqexchange,

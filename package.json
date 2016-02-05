@@ -1,6 +1,6 @@
 {
   "name": "supermyx",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Andrew Keig <andrew.keig@gmail.com>",
   "description": "supermyx is an oppionated rabbitmq wrapper around node-amqp",
   "homepage": "https://github.com/andrewkeig/supermyx",

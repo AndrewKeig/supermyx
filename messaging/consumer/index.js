@@ -7,10 +7,17 @@ function consumer(cfg) {
 
   const subscribe = (routingKey, callback) => {
     const connection = amqp.createConnection(cfg.options, cfg.implOptions);
+    const waitexchangeName = cfg.consumer.exchange.name + '.dead';
 
     connection.on('ready', () => {
       logger.info({ msg: 'connection ready'});
       info(cfg);
+
+      connection.exchange(waitexchangeName, { durable: true, autoDelete: false, type: 'topic' }, function (ex) {
+        connection.queue(routingKey + '/dead', {durable: true, autoDelete: false}, function (q) {
+          q.bind(ex, '#');
+        });
+      });
 
       const exchange = connection.exchange(cfg.consumer.exchange.name, cfg.consumer.exchange.options);
 
@@ -18,7 +25,8 @@ function consumer(cfg) {
         logger.info({ msg: 'exchange created'});
         logger.info({ msg: 'routing key:', data: routingKey});
 
-        const queue = connection.queue(routingKey, cfg.consumer.queue.options);
+        const queueOptions = Object.assign({}, cfg.consumer.queue.options, { arguments: { "x-dead-letter-exchange": waitexchangeName }});
+        const queue = connection.queue(routingKey, queueOptions);
 
         queue.on('queueDeclareOk', () => {
           logger.info({ msg: 'queue created'});
@@ -28,13 +36,13 @@ function consumer(cfg) {
           queue.once('queueBindOk', () => {
             logger.info({ msg: 'queue bound'});
 
-            queue.subscribe(cfg.consumer.subscribe, (message, headers, deliveryInfo) => {
-              logger.info({ msg: 'subscribe receives message', data: message});
-              logger.info({ msg: 'subscribe receives headers', data: headers});
-              logger.info({ msg: 'subscribe receives deliveryInfo', data: deliveryInfo});
+            queue.subscribe(cfg.consumer.subscribe, (message, headers, deliveryInfo, messageObject) => {
+              logger.info({ msg: 'subscribe receives message', data: message });
+              logger.info({ msg: 'subscribe receives headers', data: headers });
+              logger.info({ msg: 'subscribe receives deliveryInfo', data: deliveryInfo });
 
               callback(message, function(reject, requeue) {
-                logger.info({ msg: 'shift and acknowledge message' }); 
+                logger.info({ msg: 'shift and acknowledge message', data: { reject: reject, requeue: requeue } }); 
                 queue.shift(reject, requeue);
               });
             });
