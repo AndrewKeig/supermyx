@@ -6,7 +6,7 @@ By default supermyx uses the RabbitMQ extension `publisher confirms`, which ensu
 
 supermyx will create a dead letter queue for each exchange configured, called ```<ex-name>-dead```, so calling `ack(true)` will reject a message and push it to a dead letter queue.
 
-Heartbeats are configured at `60`, you can also configure a reconnect strategy, just like `node-amqp`.
+Heartbeats are configured at `60` seconds, you can also configure a reconnect strategy, just like `node-amqp`.  Everything else can be configured via the configuration shown below.
 
 
 ## Install
@@ -69,7 +69,11 @@ const consumer = require('supermyx').consumer(config);
 
 consumer.subscribe('build/timeline', (data, ack) => {
   console.log({ msg: 'get timeline....'});
-  ack(false, false);
+  if (someerror) {
+    ack(true);  //to deadletter
+  } else {
+    ack(); //message ok
+  }
 });
 
 process.on('worker:log', (msg) => {
@@ -130,7 +134,7 @@ const amqp = {
     exchange: wqexchange,
     queue: {
       options: {
-        durable: true,
+        durable: true, //queues are persisted to disk, survive server restart
         exclusive: false,
         autoDelete: false 
       }
@@ -140,13 +144,13 @@ const amqp = {
     exchange: wqexchange,
     queue: {
       options: {
-        durable: true,
+        durable: true,  //exchanges persisted, survive server restart
         exclusive: false,
         autoDelete: false 
       },
       publish: {
-        deliveryMode: 2,
-        expiration: "600000" //60 minutes
+        deliveryMode: 2, //messages are persisted to disk, survive server restart
+        expiration: "600000" //message will expire in 60 minutes
       }
     }
     subscribe: {
