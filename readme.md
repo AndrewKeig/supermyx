@@ -4,7 +4,7 @@ supermyx is a highly oppionated RabbitMQ wrapper around `node-amqp` and can be c
 
 By default supermyx uses the RabbitMQ extension `publisher confirms`, which ensures a message is delivered to RabbitMQ.  supermyx is also configured to use `acks`, which ensure a message when pulled from a queue is acknowledged before removing it from the queue.
 
-supermyx will create a dead letter queue for each exchange configured, called ```<ex-name>-dead```
+supermyx will create a dead letter queue for each exchange configured, called ```<ex-name>-dead```, so calling `ack(true)` will reject a message and push it to a dead letter queue.
 
 Heartbeats are configured at `60`, you can also configure a reconnect strategy, just like `node-amqp`.
 
