@@ -21,7 +21,7 @@ $ npm install supermyx --save
 supermyx will emit log messages at various intervals; so you can setup a handler listening to:
 
 ```
-process.on(worker:log, (msg) => {
+process.on(cmd-server:log, (msg) => {
   console.log(msg);
 })
 ```
@@ -51,7 +51,7 @@ producer.publish('build/timeline', 'get me a timeline')
     process.exit(); 
   });
 
-process.on('worker:log', (msg) => {
+process.on('cmd-server:log', (msg) => {
   console.log(JSON.stringify(msg));
 });
 
@@ -76,7 +76,7 @@ consumer.subscribe('build/timeline', (data, ack) => {
   }
 });
 
-process.on('worker:log', (msg) => {
+process.on('cmd-server:log', (msg) => {
   console.log(JSON.stringify(msg));
 });
 

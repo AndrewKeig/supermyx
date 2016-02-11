@@ -11,6 +11,6 @@ producer.publish('build/timeline', 'get me a timeline')
   .then(() => process.exit())
   .catch(() => { logger.error({ msg: 'error'}); process.exit(); });
 
-process.on('worker:log', (msg) => {
+process.on('cmd-server:log', (msg) => {
   console.log(JSON.stringify(msg));
 });

@@ -7,6 +7,6 @@ consumer.subscribe('build/timeline', (data, ack) => {
   ack(false, false);
 });
 
-process.on('worker:log', (msg) => {
+process.on('cmd-server:log', (msg) => {
   console.log(JSON.stringify(msg));
 });

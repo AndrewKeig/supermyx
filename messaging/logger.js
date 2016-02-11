@@ -11,7 +11,7 @@ function logger(event) {
 
   const log = (event, level, data) => {
     let logMsg = { level: level, event: event, data: data };
-    process.emit('worker:log', logMsg);
+    process.emit('cmd-server:log', logMsg);
   }
 
   return { info, error, log };
