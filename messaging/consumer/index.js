@@ -7,13 +7,13 @@ function consumer(cfg) {
 
   const subscribe = (routingKey, callback) => {
     const connection = amqp.createConnection(cfg.options, cfg.implOptions);
-    const waitexchangeName = cfg.consumer.exchange.name + '.dead';
+    const deadExchangeName = cfg.consumer.exchange.name + '.' + routingKey.replace(/\//g,'.') + '.dead';
 
     connection.on('ready', () => {
       logger.info({ msg: 'connection ready'});
       info(cfg);
 
-      connection.exchange(waitexchangeName, { durable: true, autoDelete: false, type: 'topic' }, function (ex) {
+      connection.exchange(deadExchangeName, { durable: true, autoDelete: false, type: 'topic' }, function (ex) {
         connection.queue(routingKey + '/dead', {durable: true, autoDelete: false}, function (q) {
           q.bind(ex, '#');
         });
@@ -25,7 +25,7 @@ function consumer(cfg) {
         logger.info({ msg: 'exchange created'});
         logger.info({ msg: 'routing key:', data: routingKey});
 
-        const queueOptions = Object.assign({}, cfg.consumer.queue.options, { arguments: { "x-dead-letter-exchange": waitexchangeName }});
+        const queueOptions = Object.assign({}, cfg.consumer.queue.options, { arguments: { "x-dead-letter-exchange": deadExchangeName }});
         const queue = connection.queue(routingKey, queueOptions);
 
         queue.on('queueDeclareOk', () => {
@@ -42,7 +42,7 @@ function consumer(cfg) {
               logger.info({ msg: 'subscribe receives deliveryInfo', data: deliveryInfo });
 
               callback(message, function(reject, requeue) {
-                logger.info({ msg: 'shift and acknowledge message', data: { reject: reject, requeue: requeue } }); 
+                logger.info({ msg: 'shift and acknowledge message', data: { reject: reject, requeue: requeue } });
                 queue.shift(reject, requeue);
               });
             });

@@ -21,7 +21,7 @@ $ npm install supermyx --save
 supermyx will emit log messages at various intervals; so you can setup a handler listening to:
 
 ```
-process.on(cmd-server:log, (msg) => {
+process.on('cmd-server:log', (msg) => {
   console.log(msg);
 })
 ```
@@ -46,9 +46,9 @@ const producer = require('supermyx').producer(config);
 producer.publish('build/timeline', 'get me a timeline')
   .then(() => logger.info({ msg: 'published message to exchange'}))
   .then(() => process.exit())
-  .catch(() => { 
-    console.log({ msg: 'error'}); 
-    process.exit(); 
+  .catch(() => {
+    console.log({ msg: 'error'});
+    process.exit();
   });
 
 process.on('cmd-server:log', (msg) => {
@@ -136,7 +136,7 @@ const amqp = {
       options: {
         durable: true, //queues are persisted to disk, survive server restart
         exclusive: false,
-        autoDelete: false 
+        autoDelete: false
       }
     }
   },
@@ -146,7 +146,7 @@ const amqp = {
       options: {
         durable: true,  //exchanges persisted, survive server restart
         exclusive: false,
-        autoDelete: false 
+        autoDelete: false
       },
       publish: {
         deliveryMode: 2, //messages are persisted to disk, survive server restart

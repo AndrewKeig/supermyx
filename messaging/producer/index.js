@@ -7,8 +7,9 @@ function producer(cfg) {
 
   const publish = (routingKey, payload) => {
     const connection = amqp.createConnection(cfg.options, cfg.implOptions);
+    const deadExchangeName = cfg.producer.exchange.name + '.' + routingKey.replace(/\//g,'.') + '.dead';
 
-    return new Promise((resolve, reject) => {      
+    return new Promise((resolve, reject) => {
       connection.on('ready', () => {
         logger.info({ msg: 'connection ready'});
         info(cfg);
@@ -19,7 +20,7 @@ function producer(cfg) {
           logger.info({ msg: 'exchange created'});
           logger.info({ msg: 'routing key:', data: routingKey});
 
-          const queueOptions = Object.assign({}, cfg.consumer.queue.options, { arguments: { "x-dead-letter-exchange": cfg.producer.exchange.name + '.dead' }});
+          const queueOptions = Object.assign({}, cfg.consumer.queue.options, { arguments: { "x-dead-letter-exchange": deadExchangeName }});
           const queue = connection.queue(routingKey, queueOptions);
 
           queue.on('queueDeclareOk', () => {
