@@ -3,27 +3,31 @@
 supermyx is a highly oppionated AMQP/RabbitMQ wrapper around `node-amqp` and implements two messaging patterns, `work queues` and `publish subscribe`.
 
 
-# Supporting
+## Supporting
 
 
-### publisher confirms
+### Publisher confirms
 
-By default supermyx uses the RabbitMQ extension `publisher confirms`, which ensures a message is delivered to RabbitMQ, we will reject on error here.
-
-
-### acks
-
-supermyx is also configured to use `acks`, which ensure a message when pulled from a queue is acknowledged before removing it from the queue.
+supermyx producers use the RabbitMQ extension `publisher confirms`, which ensures a message is delivered to RabbitMQ, we will `Promise.reject` if RabbitMQ returns an error when sending a message.
 
 
-### dead letter queue
+### Acknowledgement
 
-supermyx will create a dead letter exchange/queue for each exchange configured, called ```<exchange-name>-<queue-name>-dead```, so calling `ack(true)` from a consumer will reject a message and push the message to a dead letter queue.
+supermyx consumers are configured to use `acks`, which ensure a message when pulled from a queue is acknowledged before removing it from the queue.  supermyx will only pull 1 message of the queue at a time.
+
+
+### Dead letter queue
+
+supermyx will create a dead letter exchange/queue for each exchange configured, in this format:
+
+```<exchange-name>-<queue-name>-dead```
+
+Calling `ack(true)` from a consumer will reject a message and push the message to a dead letter queue; `ack(false)` will not dead letter the message.
 
 
 ### Heartbeats
 
-Heartbeats are configured at `60` seconds
+Heartbeats are configured at `60` seconds.
 
 
 ### Reconnects
@@ -33,7 +37,7 @@ We support reconnects; using a linear strategy, at 120ms second intervals.
 
 ### Durability
 
-Everything in supermyx is durable, exchanges, queues and messages.  Messages will expire after 1 hour.
+Everything in supermyx is durable, exchanges, queues and messages.  Messages will expire after 1 hour; if not consumed.
 
 
 ## Install
@@ -44,7 +48,7 @@ $ npm install supermyx --save
 
 ## Options
 
-By default supermyx will use the following options, these can be changed via options.
+By default supermyx will use the following options.
 
 ```
 const optionsForWorkQueue = {
@@ -80,7 +84,9 @@ The following example configuration is for a work queue.  A work queue contains 
 
 ### Producer
 
-Currently each producer creates its own amqp connection. This is not ideal, and we will change this to a connection pool asap.  The connection is closed when the message is published.
+Currently each producer creates its own amqp connection and closes this connection when complete.
+
+This will probably change to a connection pool at some point in the future.
 
 The supermyx producer is promise based; so on error this producer will promise `reject`; on success, promise `resolve`.
 
@@ -146,7 +152,9 @@ The following example configuration is for pubsub.  Each consumer creates its ow
 
 ### Producer
 
-Currently each producer creates its own amqp connection. This is not ideal, and we will change this to a connection pool asap.  The connection is closed when the message is published.
+Currently each producer creates its own amqp connection and closes this connection when complete.
+
+This will probably change to a connection pool at some point in the future.
 
 On error this producer will promise `reject`; on success, promise `resolve`.
 
