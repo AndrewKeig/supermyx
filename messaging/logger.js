@@ -1,6 +1,8 @@
 'use strict';
 
-function logger(event) {
+function logger(event, logName) {
+  logName = logName || 'supermyx:log';
+
   const error = (data) => {
     log(event, 'error', data);
   }
@@ -11,7 +13,7 @@ function logger(event) {
 
   const log = (event, level, data) => {
     let logMsg = { level: level, event: event, data: data };
-    process.emit('cmd-server:log', logMsg);
+    process.emit(logName, logMsg);
   }
 
   return { info, error, log };

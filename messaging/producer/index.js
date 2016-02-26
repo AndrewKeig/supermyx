@@ -1,9 +1,10 @@
 'use strict';
 
 const amqp = require('amqp');
-const logger = require('../logger')('amqp-producer');
 
-function producer(cfg) {
+function producer(cfg, log) {
+
+  const logger = require('../logger')('amqp-producer', log);
 
   const publish = (routingKey, payload) => {
     const connection = amqp.createConnection(cfg.options, cfg.implOptions);
@@ -20,7 +21,7 @@ function producer(cfg) {
           logger.info({ msg: 'exchange created'});
           logger.info({ msg: 'routing key:', data: routingKey});
 
-          const queueOptions = Object.assign({}, cfg.consumer.queue.options, { arguments: { "x-dead-letter-exchange": deadExchangeName }});
+          const queueOptions = Object.assign({}, cfg.producer.queue.options, { arguments: { "x-dead-letter-exchange": deadExchangeName }});
           const queue = connection.queue(routingKey, queueOptions);
 
           queue.on('queueDeclareOk', () => {
@@ -32,7 +33,7 @@ function producer(cfg) {
               logger.info({ msg: 'queue bound'});
               logger.info({ msg: 'payload:', data: payload});
 
-              exchange.publish(routingKey, payload, cfg.consumer.publish, (err) => {
+              exchange.publish(routingKey, payload, cfg.producer.publish, (err) => {
                 close(connection);
                 return (err) ? reject() : resolve();
               });

@@ -1,12 +1,39 @@
 # supermyx
 
-supermyx is a highly oppionated RabbitMQ wrapper around `node-amqp` and can be configured to implement various messaging patterns, including `work queues` and `publish subscribe`.
+supermyx is a highly oppionated AMQP/RabbitMQ wrapper around `node-amqp` and implements two messaging patterns, `work queues` and `publish subscribe`.
 
-By default supermyx uses the RabbitMQ extension `publisher confirms`, which ensures a message is delivered to RabbitMQ.  supermyx is also configured to use `acks`, which ensure a message when pulled from a queue is acknowledged before removing it from the queue.
 
-supermyx will create a dead letter queue for each exchange configured, called ```<ex-name>-dead```, so calling `ack(true)` will reject a message and push it to a dead letter queue.
+# Supporting
 
-Heartbeats are configured at `60` seconds, you can also configure a reconnect strategy, just like `node-amqp`.  Everything else can be configured via the configuration shown below.
+
+### publisher confirms
+
+By default supermyx uses the RabbitMQ extension `publisher confirms`, which ensures a message is delivered to RabbitMQ, we will reject on error here.
+
+
+### acks
+
+supermyx is also configured to use `acks`, which ensure a message when pulled from a queue is acknowledged before removing it from the queue.
+
+
+### dead letter queue
+
+supermyx will create a dead letter exchange/queue for each exchange configured, called ```<exchange-name>-<queue-name>-dead```, so calling `ack(true)` from a consumer will reject a message and push the message to a dead letter queue.
+
+
+### Heartbeats
+
+Heartbeats are configured at `60` seconds
+
+
+### Reconnects
+
+We support reconnects; using a linear strategy, at 120ms second intervals.
+
+
+### Durability
+
+Everything in supermyx is durable, exchanges, queues and messages.  Messages will expire after 1 hour.
 
 
 ## Install
@@ -15,15 +42,33 @@ Heartbeats are configured at `60` seconds, you can also configure a reconnect st
 $ npm install supermyx --save
 ```
 
+## Options
+
+By default supermyx will use the following options, these can be changed via options.
+
+```
+const optionsForWorkQueue = {
+  exchange: 'queue.exchange',
+  log: 'supermyx:log'
+};
+
+
+const optionsForPubSub = {
+  exchange: 'pubsub.exchange',
+  log: 'supermyx:log'
+};
+
+```
+
 
 ## Logs
 
 supermyx will emit log messages at various intervals; so you can setup a handler listening to:
 
 ```
-process.on('cmd-server:log', (msg) => {
-  console.log(msg);
-})
+process.on('my:log', (msg) => {
+  console.log('%j', msg);
+});
 ```
 
 ## Work Queue
@@ -37,22 +82,22 @@ The following example configuration is for a work queue.  A work queue contains 
 
 Currently each producer creates its own amqp connection. This is not ideal, and we will change this to a connection pool asap.  The connection is closed when the message is published.
 
-On error this producer will promise `reject`; on success, promise `resolve`.
+The supermyx producer is promise based; so on error this producer will promise `reject`; on success, promise `resolve`.
 
 ```
-const config = require('./config');
-const producer = require('supermyx').producer(config);
+const options = {
+  exchange: 'my.wq.exchange',
+  log: 'my:log'
+};
+
+const producer = require('../../index').queue('amqp://localhost:5672', options).producer;
 
 producer.publish('build/timeline', 'get me a timeline')
-  .then(() => logger.info({ msg: 'published message to exchange'}))
-  .then(() => process.exit())
-  .catch(() => {
-    console.log({ msg: 'error'});
-    process.exit();
-  });
+  .then(() => console.log('published message to exchange'))
+  .catch((err) => { console.error('error %s', err); process.exit(); });
 
-process.on('cmd-server:log', (msg) => {
-  console.log(JSON.stringify(msg));
+process.on('my:log', (msg) => {
+  console.log('%j', msg);
 });
 
 ```
@@ -60,104 +105,99 @@ process.on('cmd-server:log', (msg) => {
 
 ### Consumer
 
-Each consumer creates its own amqp connection.  On error this consumer will `process.exit`.
+Each consumer creates its own amqp connection.  The consumer is callback based.  Any errors thown by `node-amqp` and this consumer will `process.exit`, so you will need to use somthing like `pm2` to restart your process.  In order to avoid the process exiting with regard to errors thrown inside the consumer, you should create your own error handling inside the consumer.
 
 ```
+const options = {
+  exchange: 'my.wq.exchange',
+  log: 'my:log'
+};
 
-const config = require('./config');
-const consumer = require('supermyx').consumer(config);
+const consumer = require('../../index').queue('amqp://localhost:5672', options).consumer;
 
 consumer.subscribe('build/timeline', (data, ack) => {
-  console.log({ msg: 'get timeline....'});
-  if (someerror) {
-    ack(true);  //to deadletter
+  console.log('%j', data);
+
+  // Do work here
+  const ok = true;
+
+  if (ok) {
+    // message processed successfully
+    ack(false, false);
   } else {
-    ack(); //message ok
+    // dead letter this message
+    ack(true);
   }
 });
 
-process.on('cmd-server:log', (msg) => {
-  console.log(JSON.stringify(msg));
+process.on('my:log', (msg) => {
+  console.log('%j', msg);
 });
 
-
 ```
 
-## Config
 
-Configure the exchange like so to implement pubsub.
+## Pub Sub
 
-```
-const psexchange = {
-  name: "pubsub.exchange",
-  options: {
-    type: 'fanout',
-    durable: true,
-    autoDelete: false,
-    confirm: true
-  }
-};
-```
+The following is also included in the examples folder.
 
-Configure the exchange like so to implement a work queue.
+The following example configuration is for pubsub.  Each consumer creates its own queue bound to the same exchange.  Messages published to this exchange will to routed to each consumer.
+
+
+### Producer
+
+Currently each producer creates its own amqp connection. This is not ideal, and we will change this to a connection pool asap.  The connection is closed when the message is published.
+
+On error this producer will promise `reject`; on success, promise `resolve`.
 
 ```
-const wqexchange = {
-  name: "workqueue.exchange",
-  options: {
-    type: 'direct',
-    durable: true,
-    autoDelete: false,
-    confirm: true
-  }
+const options = {
+  exchange: 'my.ps.exchange',
+  log: 'my:log'
 };
 
+const producer = require('../../index').pubsub('amqp://localhost:5672', options).producer;
+
+producer.publish('send/message', 'get me a timeline')
+  .then(() => console.log('published message to exchange'))
+  .catch((err) => { console.error('error %s', err); process.exit(); });
+
+process.on('my:log', (msg) => {
+  console.log('%j', msg);
+});
+
 ```
 
 
-The following configuration completes our example.
+### Consumer
+
+Each consumer creates its own amqp connection.  On error this consumer will `process.exit`, so you will need to use somthing like `pm2` to restart your process.
 
 ```
+const options = {
+  exchange: 'my.ps.exchange',
+  log: 'my:log'
+};
 
-const amqp = {
-  options: {
-    heartbeat: 60,
-    url: 'amqp://localhost'
-  },
-  implOptions: {
-    reconnect: true,
-    reconnectBackoffStrategy: 'linear',
-    reconnectExponentialLimit: 120000,
-    reconnectBackoffTime: 1000
-  },
-  producer: {
-    exchange: wqexchange,
-    queue: {
-      options: {
-        durable: true, //queues are persisted to disk, survive server restart
-        exclusive: false,
-        autoDelete: false
-      }
-    }
-  },
-  consumer: {
-    exchange: wqexchange,
-    queue: {
-      options: {
-        durable: true,  //exchanges persisted, survive server restart
-        exclusive: false,
-        autoDelete: false
-      },
-      publish: {
-        deliveryMode: 2, //messages are persisted to disk, survive server restart
-        expiration: "600000" //message will expire in 60 minutes
-      }
-    }
-    subscribe: {
-      ack: true,
-      prefetchCount: 1
-    }
+const consumer = require('../../index').pubsub('amqp://localhost:5672', options).consumer;
+
+consumer.subscribe('send/message', (data, ack) => {
+  console.log('%j', data);
+
+  // Do work here
+  const ok = true;
+
+  if (ok) {
+    // message processed successfully
+    ack(false, false);
+  } else {
+    // dead letter this message
+    ack(true);
   }
-}
+});
+
+process.on('my:log', (msg) => {
+  console.log('%j', msg);
+});
 
 ```

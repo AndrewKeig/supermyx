@@ -1,9 +1,10 @@
 'use strict';
 
 const amqp = require('amqp');
-const logger = require('../logger')('amqp-consumer');
 
-function consumer(cfg) {
+function consumer(cfg, log) {
+
+  const logger = require('../logger')('amqp-consumer', log);
 
   const subscribe = (routingKey, callback) => {
     const connection = amqp.createConnection(cfg.options, cfg.implOptions);
@@ -13,8 +14,8 @@ function consumer(cfg) {
       logger.info({ msg: 'connection ready'});
       info(cfg);
 
-      connection.exchange(deadExchangeName, { durable: true, autoDelete: false, type: 'topic' }, function (ex) {
-        connection.queue(routingKey + '/dead', {durable: true, autoDelete: false}, function (q) {
+      connection.exchange(deadExchangeName, { durable: true, autoDelete: false, type: 'topic' }, (ex) => {
+        connection.queue(routingKey + '/dead', {durable: true, autoDelete: false}, (q) => {
           q.bind(ex, '#');
         });
       });
