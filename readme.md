@@ -20,7 +20,9 @@ supermyx consumers are configured to use `acks`, which ensure a message when pul
 
 supermyx will create a dead letter exchange/queue for each exchange configured, in this format:
 
-```<exchange-name>-<queue-name>-dead```
+```
+<exchange-name>-<queue-name>-dead
+```
 
 Calling `ack(true)` from a consumer will reject a message and push the message to a dead letter queue; `ack(false)` will not dead letter the message.
 
