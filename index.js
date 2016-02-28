@@ -2,6 +2,8 @@
 
 const workqueue = (url, options) => {
 
+  options = options || {};
+
   const producer = require('./lib/workqueue/producer');
   const consumer = require('./lib/workqueue/consumer');
   const producerCfg = require('./lib/workqueue/config/producer');
@@ -17,6 +19,8 @@ const workqueue = (url, options) => {
 }
 
 const pubsub = (url, options) => {
+
+  options = options || {};
 
   const producer = require('./lib/pubsub/producer');
   const consumer = require('./lib/pubsub/consumer');
