@@ -9,12 +9,11 @@ supermyx is a highly oppionated AMQP/RabbitMQ wrapper around `node-amqp` and imp
 $ npm install supermyx --save
 ```
 
----
 ## Work Queue Example
 
 A work queue uses a `direct` exchange and contains a single queue; each consumer pulls a single message off the queue in a round robin fashion; so load is distributed evenly amongst consumers.
 
-  
+
 
 ### Producer
 
@@ -122,7 +121,6 @@ Reconnects are supported using a linear strategy, at 120ms second intervals.
 Exchanges, queues and messages are durable; messages will expire after 1 hour; if not consumed.
 
 
----
 
 ## Publish Subcribe
 
@@ -205,7 +203,6 @@ Reconnects are supported using a linear strategy, at 120ms second intervals.
 
 Exchanges, queues and messages are not durable.
 
----
 
 ## Logging
 
