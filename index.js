@@ -1,16 +1,14 @@
 'use strict';
 
-const producer = require('./messaging/producer');
-const consumer = require('./messaging/consumer');
+const workqueue = (url, options) => {
 
-const queue = (url, options) => {
-  const producerCfg = require('./messaging/config/queue/producer');
-  const consumerCfg = require('./messaging/config/queue/consumer');
+  const producer = require('./lib/workqueue/producer');
+  const consumer = require('./lib/workqueue/consumer');
+  const producerCfg = require('./lib/workqueue/config/producer');
+  const consumerCfg = require('./lib/workqueue/config/consumer');
 
   producerCfg.options.url = url;
   consumerCfg.options.url = url;
-  producerCfg.producer.exchange.name = options.exchange;
-  consumerCfg.consumer.exchange.name = options.exchange;
 
   return {
     producer: producer(producerCfg, options.log),
@@ -19,13 +17,14 @@ const queue = (url, options) => {
 }
 
 const pubsub = (url, options) => {
-  const producerCfg = require('./messaging/config/pubsub/producer');
-  const consumerCfg = require('./messaging/config/pubsub/consumer');
+
+  const producer = require('./lib/pubsub/producer');
+  const consumer = require('./lib/pubsub/consumer');
+  const producerCfg = require('./lib/pubsub/config/producer');
+  const consumerCfg = require('./lib/pubsub/config/consumer');
 
   producerCfg.options.url = url;
   consumerCfg.options.url = url;
-  producerCfg.producer.exchange.name = options.exchange;
-  consumerCfg.consumer.exchange.name = options.exchange;
 
   return {
     producer: producer(producerCfg, options.log),
@@ -34,6 +33,6 @@ const pubsub = (url, options) => {
 }
 
 module.exports = {
-  queue: queue,
+  workqueue: workqueue,
   pubsub: pubsub
 }

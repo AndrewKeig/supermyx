@@ -1,13 +1,13 @@
 const options = {
-  exchange: 'my.ps.exchange',
   log: 'my:log'
 };
 
-const consumer = require('../../index').pubsub('amqp://localhost:5672', options).consumer;
+const consumer = require('../../index')
+  .pubsub('amqp://localhost:5672', options)
+  .consumer;
 
-consumer.subscribe('send/message', (data, ack) => {
+consumer.subscribe('notification.fanout', (data) => {
   console.log('%j', data);
-  ack(false, false);
 });
 
 process.on('my:log', (msg) => {
