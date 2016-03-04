@@ -199,6 +199,11 @@ Heartbeats are configured at `60` seconds.
 Reconnects are supported using a linear strategy, at 120ms second intervals.
 
 
+#### Publisher confirms
+
+The supermyx pubsub producer uses the RabbitMQ extension `publisher confirms`, which ensures a message is delivered to RabbitMQ, we will `Promise.reject` if RabbitMQ returns an error when sending a message.
+
+
 #### Durability
 
 Exchanges, queues and messages are not durable.
